@@ -32,7 +32,68 @@ Installation :
 La facilité de Traefik est que c'est un service déjà conterisé, il suffit de démarrer le conteneur et de le configurer : [doc](https://doc.traefik.io/traefik/getting-started/quick-start/)
 
 
+*compose.yaml*
+```yaml
+services:
+  reverse-proxy:
+    # The official v3 Traefik docker image
+    image: traefik:v3.3
+    ports:
+      # The HTTP port
+      - "80:80"
+      # The HTTPS port
+      - "443:443"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+      # External static configuration
+      - ./traefik.yml:/etc/traefik/traefik.yml
+      # SSL certificates files 
+      - ./letsencrypt:/letsencrypt
+    networks:
+      - traefik-network
 
+networks:
+  traefik-network:
+    external: true
+```
+
+Il faut initialement créer le réseaux `traefik-network`, sur lequel devra être tous les services pour que Traefik puisse rediriger la requête.  
+```bash
+docker network creat traefik-network
+```
+
+Il faut également gérer la configuration de traefik initialement dans le fichier `traefik.yml` : 
+```yaml
+# Configuration initiale Traefik
+
+## Déclaration du provider
+providers:
+  docker: {}
+
+## Écoute du port 80 et 443, avec redirection du port 80 vers le port 443
+entryPoints:
+  web:
+    address: :80
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+
+  websecure:
+    address: :443
+
+## Gestion du certificat SSL par Let's Encrypt
+certificatesResolvers:
+  myresolver:
+    acme:
+      email: "monemail@email.com"
+      storage: "./letsencrypt/acme.json"
+      httpChallenge:
+        # used during the challenge
+        entryPoint: web
+```
 
 
 ## Authentifier docker aux registry

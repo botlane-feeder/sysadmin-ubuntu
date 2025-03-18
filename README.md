@@ -41,9 +41,9 @@ Installer Docker et Traefik pour gérer les requêtes et les traiter par le serv
 - Installer Traefik et le configurer
 - Authentifier docker aux registry
 
-## Préparer pour le monitoring
+## Tracker pour le monitoring
 
-
+- Exporter + BDD + Visualisateur
 
 ## Mettre à jour régulières
 
